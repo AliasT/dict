@@ -1,4 +1,9 @@
-CREATE TABLE vocabulary (
-	id    INTEGER PRIMARY KEY AUTOINCREMENT,
-	count INTEGER default 0
+create table if not exists vocabulary
+(
+    id          INTEGER
+        primary key autoincrement,
+    count       INTEGER default 1,
+    translation varchar,
+    lang        varchar,
+    source      varchar
 );

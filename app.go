@@ -40,27 +40,25 @@ func main() {
 
 	var lang string
 	switch os.Args[1] {
-	case "zh":
-		lang = "zh"
-	case "en":
-		lang = "en"
+	case "zh", "en":
+		lang = os.Args[1]
+		args := strings.Join(os.Args[2:], " ")
+		translationItem := TranslationItem{}
+
+		err = db.Get(&translationItem, "select * from vocabulary where source = $1", args)
+
+		if err != nil {
+			// panic(err.Error())
+			translation := run(args)
+			println(translation)
+			db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
+		} else {
+			// 更新查询次数
+			db.MustExec("update vocabulary set count = count + 1 where id = $1", translationItem.ID)
+			println(translationItem.Translation)
+		}
 	case "list":
 		// TODO
 	}
 
-	args := strings.Join(os.Args[2:], " ")
-	translationItem := TranslationItem{}
-
-	err = db.Get(&translationItem, "select * from vocabulary where source = $1", args)
-
-	if err != nil {
-		// panic(err.Error())
-		translation := run(args)
-		println(translation)
-		db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
-	} else {
-		// 更新查询次数
-		db.MustExec("update vocabulary set count = count + 1 where id = $1", translationItem.ID)
-		println(translationItem.Translation)
-	}
 }
