@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 	"os/exec"
@@ -11,36 +10,39 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func run(args ...string) {
-	git := exec.Command("trans", args...)
-	git.Stdout = os.Stdout
-	git.Stderr = os.Stderr
-	git.Run()
+func run(args ...string) string {
+	cmd := exec.Command("trans", args...)
+	cmd.Stderr = os.Stderr
+	output, _ := cmd.Output()
+	return string(output)
 }
 
 func main() {
-	dictCmd := flag.NewFlagSet("mode", flag.ExitOnError)
-
-	switch os.Args[1] {
-	case "zh":
-		args := os.Args[2:]
-		run(strings.Join(args, " "))
-		dictCmd.Parse(os.Args[2:])
-	case "en":
-		args := os.Args[2:]
-		run(strings.Join(args, " "))
-		dictCmd.Parse(os.Args[2:])
-	}
+	// dictCmd := flag.NewFlagSet("mode", flag.ExitOnError)
 
 	// db
-	db, err := sqlx.Connect("sqlite3", "dict.db")
+	db, err := sqlx.Connect("sqlite3", "./dict.db")
+
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	print(db)
-
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	var lang string
+	switch os.Args[1] {
+	case "zh":
+		lang = "zh"
+		// dictCmd.Parse(os.Args[2:])
+	case "en":
+		lang = "en"
+		// dictCmd.Parse(os.Args[2:])
+	}
+
+	args := strings.Join(os.Args[2:], " ")
+	translation := run(args)
+	db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
+
 }
