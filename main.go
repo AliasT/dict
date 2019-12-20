@@ -22,9 +22,9 @@ type TranslationItem struct {
 
 // StateItem 统计条目
 type StateItem struct {
-	Source     string `db:"source"`
-	Percentage int    `db:"percentage"`
-	Count      int    `db:"count"`
+	Source     string  `db:"source"`
+	Percentage float32 `db:"percentage"`
+	Count      int     `db:"count"`
 }
 
 // PadLeft https://play.golang.org/p/zciRZvD0Gr
@@ -91,7 +91,7 @@ func main() {
 		fmt.Printf("%-20s%-10s%s\n\n", "Word", "Count", "Percentage")
 
 		for _, item := range items {
-			fmt.Printf("%-20s%-10d%d%s\n", item.Source, item.Count, item.Percentage, "%")
+			fmt.Printf("%-20s%-10d%.1f%s\n", item.Source, item.Count, item.Percentage, "%")
 		}
 
 	default:
