@@ -27,10 +27,6 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var lang string
 	switch os.Args[1] {
 	case "zh":
