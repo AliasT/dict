@@ -56,6 +56,8 @@ func main() {
 		translation := run(args)
 		db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
 	} else {
+		// 更新查询次数
+		db.MustExec("update vocabulary set count = count + 1 where id = $1", translationItem.ID)
 		println(translationItem.Translation)
 	}
 }
