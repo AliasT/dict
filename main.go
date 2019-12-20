@@ -20,6 +20,23 @@ type TranslationItem struct {
 	Lang        string `db:"lang"`
 }
 
+// StateItem 统计条目
+type StateItem struct {
+	Source     string `db:"source"`
+	Percentage int    `db:"percentage"`
+	Count      int    `db:"count"`
+}
+
+// PadLeft https://play.golang.org/p/zciRZvD0Gr
+func PadLeft(str, pad string, lenght int) string {
+	for {
+		str = pad + str
+		if len(str) > lenght {
+			return str[0:lenght]
+		}
+	}
+}
+
 func run(args ...string) string {
 	// 使用前请安装google翻译控制台工具
 	// https://github.com/soimort/translate-shell
@@ -56,8 +73,26 @@ func main() {
 			db.MustExec("update vocabulary set count = count + 1 where id = $1", translationItem.ID)
 			println(translationItem.Translation)
 		}
+
 	case "list":
-		// TODO
+		items := make([]StateItem, 0)
+		err = db.Select(&items, `
+			select
+				source,
+				count,
+				count * 100.0 / (select sum(count) from vocabulary) as percentage
+			from vocabulary group by source;
+		`)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		// output
+		fmt.Printf("%-20s%-10s%s\n\n", "Word", "Count", "Percentage")
+
+		for _, item := range items {
+			fmt.Printf("%-20s%-10d%d%s\n", item.Source, item.Count, item.Percentage, "%")
+		}
 
 	default:
 		log.Fatalln(fmt.Sprintf("Command %s not supported ", os.Args[1]))
