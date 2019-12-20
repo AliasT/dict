@@ -20,6 +20,8 @@ type TranslationItem struct {
 }
 
 func run(args ...string) string {
+	// 使用前请安装google翻译控制台工具
+	// https://github.com/soimort/translate-shell
 	cmd := exec.Command("trans", args...)
 	cmd.Stderr = os.Stderr
 	output, _ := cmd.Output()
@@ -52,8 +54,9 @@ func main() {
 	err = db.Get(&translationItem, "select * from vocabulary where source = $1", args)
 
 	if err != nil {
-		log.Fatalln(err)
+		// panic(err.Error())
 		translation := run(args)
+		println(translation)
 		db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
 	} else {
 		// 更新查询次数
