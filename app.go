@@ -10,6 +10,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// TranslationItem .
+type TranslationItem struct {
+	ID          string `db:"id"`
+	Translation string `db:"translation"`
+	Source      string `db:"source"`
+	Count       int    `db:"count"`
+	Lang        string `db:"lang"`
+}
+
 func run(args ...string) string {
 	cmd := exec.Command("trans", args...)
 	cmd.Stderr = os.Stderr
@@ -38,7 +47,15 @@ func main() {
 	}
 
 	args := strings.Join(os.Args[2:], " ")
-	translation := run(args)
-	db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
+	translationItem := TranslationItem{}
 
+	err = db.Get(&translationItem, "select * from vocabulary where source = $1", args)
+
+	if err != nil {
+		log.Fatalln(err)
+		translation := run(args)
+		db.MustExec("insert into vocabulary (source, translation, lang) values ($1, $2, $3)", args, translation, lang)
+	} else {
+		println(translationItem.Translation)
+	}
 }
