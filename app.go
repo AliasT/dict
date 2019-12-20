@@ -30,8 +30,6 @@ func run(args ...string) string {
 }
 
 func main() {
-	// dictCmd := flag.NewFlagSet("mode", flag.ExitOnError)
-
 	// db
 	db, err := sqlx.Connect("sqlite3", "./dict.db")
 
