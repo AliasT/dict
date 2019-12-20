@@ -42,10 +42,10 @@ func main() {
 	switch os.Args[1] {
 	case "zh":
 		lang = "zh"
-		// dictCmd.Parse(os.Args[2:])
 	case "en":
 		lang = "en"
-		// dictCmd.Parse(os.Args[2:])
+	case "list":
+		// TODO
 	}
 
 	args := strings.Join(os.Args[2:], " ")
