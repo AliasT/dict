@@ -59,13 +59,20 @@ func main() {
 	case "zh", "en":
 		lang = os.Args[1]
 		args := strings.Join(os.Args[2:], " ")
+
 		translationItem := TranslationItem{}
 
-		err = db.Get(&translationItem, "select * from vocabulary where source = $1", args)
+		err = db.Get(
+			&translationItem,
+			"select * from vocabulary where source = $1 and lang = $2",
+			args,
+			lang,
+		)
 
 		if err != nil {
 			// panic(err.Error())
-			translation := run(args)
+
+			translation := run(":"+lang, args)
 			println(translation)
 			db.MustExec(
 				"insert into vocabulary (source, translation, lang) values ($1, $2, $3)",
