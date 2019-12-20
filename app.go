@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -59,6 +60,8 @@ func main() {
 		}
 	case "list":
 		// TODO
-	}
 
+	default:
+		log.Fatalln(fmt.Sprintf("Command %s not supported ", os.Args[1]))
+	}
 }
