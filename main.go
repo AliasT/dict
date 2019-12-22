@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -27,13 +28,28 @@ type StateItem struct {
 	Count      int     `db:"count"`
 }
 
-// PadLeft https://play.golang.org/p/zciRZvD0Gr
-func PadLeft(str, pad string, lenght int) string {
-	for {
-		str = pad + str
-		if len(str) > lenght {
-			return str[0:lenght]
+// PadRight .
+func PadRight(str string, max int) string {
+	t := 0
+	j := 0
+	for _, rune := range str {
+		cur := t + utf8.RuneLen(rune)
+		if cur > max {
+			return str[:j]
 		}
+		j = j + 1
+		t = cur
+	}
+
+	return str
+}
+
+func output(items []StateItem) {
+	// output
+	fmt.Printf("%-20s%-10s%s\n\n", "Word", "Count", "Percentage")
+
+	for _, item := range items {
+		fmt.Printf("%-20s%-10d%.1f%s\n", item.Source, item.Count, item.Percentage, "%")
 	}
 }
 
@@ -100,13 +116,19 @@ func main() {
 			panic(err.Error())
 		}
 
-		// output
-		fmt.Printf("%-20s%-10s%s\n\n", "Word", "Count", "Percentage")
+		output(items)
 
-		for _, item := range items {
-			fmt.Printf("%-20s%-10d%.1f%s\n", item.Source, item.Count, item.Percentage, "%")
+	case "most":
+		items := make([]StateItem, 0)
+		err = db.Select(&items, `
+			select
+			source, count, count * 100.0 / (select sum(count) from vocabulary) as percentage
+			from vocabulary group by source having  count >= 2;
+		`)
+		if err != nil {
+			panic(err.Error())
 		}
-
+		output(items)
 	default:
 		log.Fatalln(fmt.Sprintf("Command %s not supported ", os.Args[1]))
 	}
