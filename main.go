@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/olekukonko/tablewriter"
 )
 
 // TranslationItem .
@@ -28,29 +28,17 @@ type StateItem struct {
 	Count      int     `db:"count"`
 }
 
-// PadRight .
-func PadRight(str string, max int) string {
-	t := 0
-	j := 0
-	for _, rune := range str {
-		cur := t + utf8.RuneLen(rune)
-		if cur > max {
-			return str[:j]
-		}
-		j = j + 1
-		t = cur
-	}
-
-	return str
-}
-
+// output
 func output(items []StateItem) {
-	// output
-	fmt.Printf("%-20s%-10s%s\n\n", "Word", "Count", "Percentage")
-
+	table := tablewriter.NewWriter(os.Stdout)
 	for _, item := range items {
-		fmt.Printf("%-20s%-10d%.1f%s\n", item.Source, item.Count, item.Percentage, "%")
+		table.Append([]string{item.Source, fmt.Sprintf("%d", item.Count), fmt.Sprintf("%.1f%%", item.Percentage)})
 	}
+
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetHeader([]string{"Word", "Count", "Percentage"})
+	table.Render()
 }
 
 func run(args ...string) string {
