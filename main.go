@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"go/build"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -52,7 +54,12 @@ func run(args ...string) string {
 
 func main() {
 	// db
-	db, err := sqlx.Connect("sqlite3", "./dict.db")
+	gopath := os.Getenv("GOPATH")
+	// https: //stackoverflow.com/questions/32649770/how-to-get-current-gopath-from-code
+	if gopath == "" {
+		gopath = build.Default.GOPATH
+	}
+	db, err := sqlx.Connect("sqlite3", filepath.Join(gopath, "./src/github.com/Aliast/dict/dict.db"))
 
 	if err != nil {
 		log.Fatalln(err)
