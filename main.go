@@ -79,7 +79,7 @@ func (dict *Dict) Most() {
 	err := dict.db.Select(&items, `
 		select
 		source, count, count * 100.0 / (select sum(count) from vocabulary) as percentage
-		from vocabulary group by source having  count >= 2;
+		from vocabulary group by source having  count >= 2 order by count desc;
 	`)
 	if err != nil {
 		panic(err.Error())
