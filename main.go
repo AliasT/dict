@@ -138,9 +138,8 @@ func main() {
 	dict := initDict()
 	switch os.Args[1] {
 	case "zh", "en":
-		lang := os.Args[1]
 		args := strings.Join(os.Args[2:], " ")
-		dict.Query(lang, args)
+		dict.Query(os.Args[1], args)
 	case "list":
 		dict.List()
 	case "most":
