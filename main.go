@@ -62,9 +62,9 @@ func (dict *Dict) List() {
 	items := make([]StateItem, 0)
 	err := dict.db.Select(&items, `
 		select
-			source,
-			count,
-			count * 100.0 / (select sum(count) from vocabulary) as percentage
+		source,
+		count,
+		count * 100.0 / (select sum(count) from vocabulary) as percentage
 		from vocabulary group by source;
 	`)
 	if err != nil {
@@ -78,7 +78,9 @@ func (dict *Dict) Most() {
 	items := make([]StateItem, 0)
 	err := dict.db.Select(&items, `
 		select
-		source, count, count * 100.0 / (select sum(count) from vocabulary) as percentage
+		source,
+		count,
+		count * 100.0 / (select sum(count) from vocabulary) as percentage
 		from vocabulary group by source having  count >= 2 order by count desc;
 	`)
 	if err != nil {
