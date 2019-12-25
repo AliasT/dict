@@ -115,7 +115,6 @@ func (dict *Dict) Query(lang, args string) {
 		)
 		println(translationItem.Translation)
 	}
-
 }
 
 func initDict() Dict {
