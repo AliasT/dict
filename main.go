@@ -58,7 +58,7 @@ type Dict struct {
 }
 
 // List 列出所有记录
-func (dict *Dict) List() {
+func (dict *Dict) List() ([]StateItem, error) {
 	items := make([]StateItem, 0)
 	err := dict.db.Select(&items, `
 		select
@@ -67,14 +67,11 @@ func (dict *Dict) List() {
 		count * 100.0 / (select sum(count) from vocabulary) as percentage
 		from vocabulary group by source limit 10;
 	`)
-	if err != nil {
-		panic(err.Error())
-	}
-	output(items)
+	return items, err
 }
 
 // Most 返回查询次数较多的单词
-func (dict *Dict) Most() {
+func (dict *Dict) Most() ([]StateItem, error) {
 	items := make([]StateItem, 0)
 	err := dict.db.Select(&items, `
 		select
@@ -83,10 +80,8 @@ func (dict *Dict) Most() {
 		count * 100.0 / (select sum(count) from vocabulary) as percentage
 		from vocabulary group by source having  count >= 2 order by count desc limit 10;
 	`)
-	if err != nil {
-		panic(err.Error())
-	}
-	output(items)
+
+	return items, err
 }
 
 // Query .
@@ -142,9 +137,17 @@ func main() {
 		args := strings.Join(os.Args[2:], " ")
 		dict.Query(os.Args[1], args)
 	case "list":
-		dict.List()
+		items, err := dict.List()
+		if err != nil {
+			panic(err.Error())
+		}
+		output(items)
 	case "most":
-		dict.Most()
+		items, err := dict.Most()
+		if err != nil {
+			panic(err.Error())
+		}
+		output(items)
 
 	default:
 		log.Fatalln(fmt.Sprintf("Command %s not supported ", os.Args[1]))
