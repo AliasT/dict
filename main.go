@@ -65,7 +65,7 @@ func (dict *Dict) List() {
 		source,
 		count,
 		count * 100.0 / (select sum(count) from vocabulary) as percentage
-		from vocabulary group by source;
+		from vocabulary group by source limit 10;
 	`)
 	if err != nil {
 		panic(err.Error())
@@ -81,7 +81,7 @@ func (dict *Dict) Most() {
 		source,
 		count,
 		count * 100.0 / (select sum(count) from vocabulary) as percentage
-		from vocabulary group by source having  count >= 2 order by count desc;
+		from vocabulary group by source having  count >= 2 order by count desc limit 10;
 	`)
 	if err != nil {
 		panic(err.Error())
