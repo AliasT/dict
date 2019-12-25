@@ -52,78 +52,101 @@ func run(args ...string) string {
 	return string(output)
 }
 
-func main() {
+// Dict .
+type Dict struct {
+	db *sqlx.DB
+}
+
+// List 列出所有记录
+func (dict *Dict) List() {
+	items := make([]StateItem, 0)
+	err := dict.db.Select(&items, `
+		select
+			source,
+			count,
+			count * 100.0 / (select sum(count) from vocabulary) as percentage
+		from vocabulary group by source;
+	`)
+	if err != nil {
+		panic(err.Error())
+	}
+	output(items)
+}
+
+// Most 返回查询次数较多的单词
+func (dict *Dict) Most() {
+	items := make([]StateItem, 0)
+	err := dict.db.Select(&items, `
+		select
+		source, count, count * 100.0 / (select sum(count) from vocabulary) as percentage
+		from vocabulary group by source having  count >= 2;
+	`)
+	if err != nil {
+		panic(err.Error())
+	}
+	output(items)
+}
+
+// Query .
+func (dict *Dict) Query(lang, args string) {
+	translationItem := TranslationItem{}
+
+	err := dict.db.Get(
+		&translationItem,
+		"select * from vocabulary where source = $1 and lang = $2",
+		args,
+		lang,
+	)
+
+	if err != nil {
+		translation := run(":"+lang, args)
+		println(translation)
+		dict.db.MustExec(
+			"insert into vocabulary (source, translation, lang) values ($1, $2, $3)",
+			args, translation, lang,
+		)
+	} else {
+		// 更新查询次数
+		dict.db.MustExec(
+			"update vocabulary set count = count + 1 where id = $1",
+			translationItem.ID,
+		)
+		println(translationItem.Translation)
+	}
+
+}
+
+func initDict() Dict {
 	// db
 	gopath := os.Getenv("GOPATH")
 	// https: //stackoverflow.com/questions/32649770/how-to-get-current-gopath-from-code
 	if gopath == "" {
 		gopath = build.Default.GOPATH
 	}
+
 	db, err := sqlx.Connect("sqlite3", filepath.Join(gopath, "./src/github.com/Aliast/dict/dict.db"))
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	dict := Dict{db}
+	return dict
+}
+
+func main() {
+	dict := initDict()
 	var lang string
 	switch os.Args[1] {
 	case "zh", "en":
 		lang = os.Args[1]
 		args := strings.Join(os.Args[2:], " ")
-
-		translationItem := TranslationItem{}
-
-		err = db.Get(
-			&translationItem,
-			"select * from vocabulary where source = $1 and lang = $2",
-			args,
-			lang,
-		)
-
-		if err != nil {
-			// panic(err.Error())
-
-			translation := run(":"+lang, args)
-			println(translation)
-			db.MustExec(
-				"insert into vocabulary (source, translation, lang) values ($1, $2, $3)",
-				args, translation, lang,
-			)
-		} else {
-			// 更新查询次数
-			db.MustExec(
-				"update vocabulary set count = count + 1 where id = $1",
-				translationItem.ID,
-			)
-			println(translationItem.Translation)
-		}
-
+		dict.Query(lang, args)
 	case "list":
-		items := make([]StateItem, 0)
-		err = db.Select(&items, `
-			select
-				source,
-				count,
-				count * 100.0 / (select sum(count) from vocabulary) as percentage
-			from vocabulary group by source;
-		`)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		output(items)
-
+		dict.List()
 	case "most":
-		items := make([]StateItem, 0)
-		err = db.Select(&items, `
-			select
-			source, count, count * 100.0 / (select sum(count) from vocabulary) as percentage
-			from vocabulary group by source having  count >= 2;
-		`)
-		if err != nil {
-			panic(err.Error())
-		}
-		output(items)
+		dict.Most()
+
 	default:
 		log.Fatalln(fmt.Sprintf("Command %s not supported ", os.Args[1]))
 	}
