@@ -136,10 +136,9 @@ func initDict() Dict {
 
 func main() {
 	dict := initDict()
-	var lang string
 	switch os.Args[1] {
 	case "zh", "en":
-		lang = os.Args[1]
+		lang := os.Args[1]
 		args := strings.Join(os.Args[2:], " ")
 		dict.Query(lang, args)
 	case "list":
