@@ -12,7 +12,8 @@
       "program": "${fileDirname}/main.go",
       "env": {},
       "args": [
-        "most"
+        "rm",
+        "."
       ]
     }
   ]

@@ -112,6 +112,22 @@ func (dict *Dict) Query(lang, args string) {
 	}
 }
 
+// RM 从数据库删除一个单词
+func (dict *Dict) RM(word string) {
+	for {
+		var input string
+		fmt.Print("确认要删除该单词吗？（y/n)")
+		fmt.Scanln(&input)
+		// 删除确认
+		if input == "y" {
+			dict.db.MustExec("delete from vocabulary where source = $1", word)
+			return
+		}
+		os.Exit(0)
+	}
+
+}
+
 func initDict() Dict {
 	// db
 	gopath := os.Getenv("GOPATH")
@@ -148,7 +164,8 @@ func main() {
 			panic(err.Error())
 		}
 		output(items)
-
+	case "rm":
+		dict.RM(strings.Join(os.Args[2:], " "))
 	default:
 		log.Fatalln(fmt.Sprintf("Command %s not supported ", os.Args[1]))
 	}
