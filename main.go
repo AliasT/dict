@@ -84,6 +84,22 @@ func (dict *Dict) Most() ([]StateItem, error) {
 	return items, err
 }
 
+func (dict *Dict) Random() {
+	translationItem := TranslationItem{}
+
+	err := dict.db.Get(
+		&translationItem,
+		"SELECT * FROM vocabulary ORDER BY random() LIMIT 1",
+	)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fmt.Println(translationItem.Source)
+	fmt.Println(translationItem.Translation)
+}
+
 // Query .
 func (dict *Dict) Query(lang, args string) {
 	translationItem := TranslationItem{}
@@ -158,6 +174,8 @@ func main() {
 			panic(err.Error())
 		}
 		output(items)
+	case "random":
+		dict.Random()
 	case "most":
 		items, err := dict.Most()
 		if err != nil {
